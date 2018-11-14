@@ -30,9 +30,7 @@
 %?- show.
 show :-
     empty_board(6, 7, Board0),
-    open(pipe('cat /dev/stdin'), write, Out, [buffer(false)]),
-    tell(Out),
-    call_cleanup((interact(x, Board0);false), close(Out)).
+    interact(x, Board0).
 
 %?- play
 play :-
