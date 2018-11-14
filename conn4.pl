@@ -1,3 +1,4 @@
+#!/usr/bin/env swipl
 % -------------------------------------------------------------------------
 %   Four-In-A-Row in Prolog
 %   =======================
@@ -26,16 +27,14 @@
 %  ------------------------------------------------------------------------
 
 
-% -------------------------------------------------------------------------
-%?- show.
-show :-
+main:-
     empty_board(6, 7, Board0),
     interact(x, Board0).
 
 %?- play
-play :-
-    empty_board(6, 7, Board0),
-    alternate(x, Board0).
+% play :-
+%   empty_board(6, 7, Board0),
+%   alternate(x, Board0).
 %  ------------------------------------------------------------------------
 
 
@@ -114,9 +113,6 @@ diagonal_up([Col1,Col2,Col3,Col4|_], Player) :-
         Col2 = [_,_|Rot2],
         Col3 = [_|Rot3],
         four_in_a_row(Rot1, Rot2, Rot3, Col4, Player).
-
-
-
 
 insert_piece_([P|Ps], Player, Is, Free) :-
         (   empty(P) ->
@@ -301,3 +297,5 @@ interact(Player, Board0) :-
                 interact(Opp, Board1)
             )
         ).
+
+:- main.
