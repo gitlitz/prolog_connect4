@@ -22,9 +22,6 @@
 % -------------------------------------------------------------------------
 
 % -------------------------------------------------------------------------
-%  Since we reason over integers, we use CLP(FD) constraints (see: prolog/clpfd)
-:- use_module(library(clpfd)).
-%  ------------------------------------------------------------------------
 
 
 main:-
@@ -63,12 +60,12 @@ empty_board(N, M, Board) :-
         foldl(column(Es), Board, 1, _).
 
 column(Empty, col(N0,yes,empty,0,Empty), N0, N) :-
-        N #= N0 + 1.
+        N is N0 + 1.
 
 
 
 win(Player, Board) :-
-        (   member(col(_,_,Player,N,_), Board), N #>= 4
+        (   member(col(_,_,Player,N,_), Board), N >= 4
         ;   un_col(Board, Board1),
             (   four_in_a_row(Board1, Player)
             ;   diagonal(Board1, Player)
@@ -126,11 +123,11 @@ insert_piece_([P|Ps], Player, Is, Free) :-
 
 play_column([Col0|Cols0], Column, Player, [Col|Cols]) :-
         Col0 = col(CN0,_,TP0,TN0,Cs0),
-        (   CN0 #= Column ->
+        (   CN0 = Column ->
             insert_piece_(Cs0, Player, Cs, Free),
             Cols = Cols0,
             (   TP0 == Player ->
-                TN #= TN0 + 1
+                TN is TN0 + 1
             ;   TN = 1
             ),
             Col = col(CN0,Free,Player,TN,Cs)
@@ -179,8 +176,8 @@ possible_columns(Cols0, Cs) :-
 play(Player, Board0, Move) :-
         possible_columns(Board0, Columns),
         max_depth(Depth),
-        Alpha #= -Depth - 1,
-        Beta #= Depth + 1,
+        Alpha is -Depth - 1,
+        Beta is Depth + 1,
         moves_with_scores(Columns, Depth, Alpha, Beta, Player, Board0, SMs),
         best_move(Player, SMs, Move).
 
@@ -197,27 +194,27 @@ moves_with_scores([], _, _, _, _, _, []).
 moves_with_scores([M|Ms], Depth, Alpha0, Beta0, Player, Board0, [Score-M|SMs]) :-
         move_score(Depth, Alpha0, Beta0, Player, Board0, M, Score),
         (   max_player(Player) ->
-            Alpha #= max(Alpha0, Score),
-            Beta #= Beta0
-        ;   Alpha #= Alpha0,
-            Beta #= min(Beta0, Score)
+            Alpha is max(Alpha0, Score),
+            Beta is Beta0
+        ;   Alpha is Alpha0,
+            Beta is min(Beta0, Score)
         ),
-        (   Beta #< Alpha -> SMs = []
+        (   Beta < Alpha -> SMs = []
         ;   moves_with_scores(Ms, Depth, Alpha, Beta, Player, Board0, SMs)
         ).
 
 move_score(Depth, Alpha, Beta, Player, Board0, Move, Score) :-
-        (   Depth #= 0 -> Score #= 0
+        (   Depth is 0 -> Score is 0
         ;   play_column(Board0, Move, Player, Board1),
             (   win(Player, Board1) ->
                 (   max_player(Player) ->
-                    Score #= 1 + Depth % favor early wins
-                ;   Score #= -1 - Depth
+                    Score is 1 + Depth % favor early wins
+                ;   Score is -1 - Depth
                 )
             ;   possible_columns(Board1, Moves),
                 (   Moves == [] ->
-                    Score #= 0
-                ;   D1 #= Depth - 1,
+                    Score is 0
+                ;   D1 is Depth - 1,
                     opponent(Player, Opp),
                     moves_with_scores(Moves, D1, Alpha, Beta, Opp, Board1, SMs),
                     best_score(SMs, Opp, Score)
@@ -275,7 +272,7 @@ user_input(Board, Char) :-
         get_single_char(Char0),
         (   Char0 == (0' ) -> Char = c
         ;   between(0'1, 0'7, Char0) ->
-            Char1 #= Char0 - 0'0,
+            Char1 is Char0 - 0'0,
             (   play_column(Board, Char1, x, _) -> Char = Char1
             ;   user_input(Board, Char)
             )
