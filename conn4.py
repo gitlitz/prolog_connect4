@@ -3,8 +3,10 @@
 # Python Connect4 game (https://github.com/mevdschee/python-connect4.git)
 # Author: Maurits van der Schee <maurits@vdschee.nl>
 
+import sys
 import copy
 import time
+import threading
 from Tkinter import Tk, Button, Frame, Canvas
 from tkFont import Font
 
@@ -164,4 +166,6 @@ class GUI:
     self.app.mainloop()
 
 if __name__ == '__main__':
-  GUI().mainloop()
+  threading.Thread(target=GUI().mainloop).run()
+  for move in sys.stdin.readlines():
+    if move.
