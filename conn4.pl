@@ -8,31 +8,16 @@
 %                 called "connect 4" or "4 in a row".
 %                 The program displays a graphical interface, aswell as an AI
 %                 which is a cimputer playing againt a human player.
-%  Input        - a series of numeric (1-7) key strokes
-%                 all ijnput is presented received through interpreter window
+%  Input        - a series of numeric (1-7) key and space bar strokes 
+%                 all input is presented received through interpreter window
 %  Ouptut       - interaction with a graphical interface
 %                 all ojutput is presented on the graphical interface
-%  Synopsis     - Open the program using SWI-Prolog (make sure GhostScript installed)
-%                 To make the computer play against itself, use:
-%                   ?- play.
-%                 If you have GhostScript installed, you can use:
-%                   ?- show.
-%                   Press 1, 2, ..., 7 to drop a piece in that column. Alternatively,
-%                   press SPACE to let the computer choose a column for you.
-% -------------------------------------------------------------------------
-
 % -------------------------------------------------------------------------
 
 
 main:-
     empty_board(6, 7, Board0),
     interact(x, Board0).
-
-%?- play
-% play :-
-%   empty_board(6, 7, Board0),
-%   alternate(x, Board0).
-%  ------------------------------------------------------------------------
 
 
 % -------------------------------------------------------------------------
@@ -62,14 +47,10 @@ empty_board(N, M, Board) :-
 column(Empty, col(N0,yes,empty,0,Empty), N0, N) :-
         N is N0 + 1.
 
-
-
 win(Player, Board) :-
-        (   member(col(_,_,Player,N,_), Board), N >= 4
-        ;   un_col(Board, Board1),
-            (   four_in_a_row(Board1, Player)
-            ;   diagonal(Board1, Player)
-            )
+        un_col(Board, Board1),
+        (   four_in_a_row(Board1, Player)
+        ;   diagonal(Board1, Player)
         ).
 
 
@@ -230,44 +211,6 @@ best_score(SMs0, Player, Score) :-
         ;   SMs = [Score-_|_]
         ).
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% see (?- play)
-
-% 
-alternate(Player, Board0) :-
-        (   play(Player, Board0, Column) ->
-            play_column(Board0, Column, Player, Board1),
-            format("\n\n~w plays:\n", [Player]),
-            display_board(Board1),
-            (   win(Player, Board1) ->
-                format("~w wins\n", [Player])
-            ;   opponent(Player, Opp),
-                alternate(Opp, Board1)
-            )
-        ;   format("draw\n")
-        ).
-
-display_board(Board0) :-
-        un_col(Board0, Board1),
-        maplist(reverse, Board1, Board2),
-        transpose(Board2, Ts),
-        maplist(print_line, Ts),
-        nl.
-
-print_line(Line) :-
-        format("\n\t"),
-        maplist(print_col, Line).
-
-print_col(Col) :- format("~w ", [Col]).
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% see (?- show)
-
-% 
 user_input(Board, Char) :-
         get_single_char(Char0),
         (   Char0 == (0' ) -> Char = c
@@ -281,7 +224,8 @@ user_input(Board, Char) :-
 
 interact(Player, Board0) :-
         (   \+ play(Player, Board0, _) -> format("draw\n")
-        ;   user_input(Board0, Char),
+        ;   
+	    user_input(Board0, Char),
             (   Char == c ->
                 play(Player, Board0, Column)
             ;   Column = Char
