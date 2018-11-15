@@ -213,7 +213,7 @@ best_score(SMs0, Player, Score) :-
 
 user_input(Board, Char) :-
         get_single_char(Char0),
-        (   Char0 == (0' ) -> Char = c
+        (   Char0 == (0'0) -> Char = c
         ;   between(0'1, 0'7, Char0) ->
             Char1 is Char0 - 0'0,
             (   play_column(Board, Char1, x, _) -> Char = Char1

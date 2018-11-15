@@ -3,10 +3,12 @@
 # Python Connect4 game (https://github.com/mevdschee/python-connect4.git)
 # Author: Maurits van der Schee <maurits@vdschee.nl>
 
+import os
 import sys
 import copy
 import time
 import threading
+import subprocess
 from Tkinter import Tk, Button, Frame, Canvas
 from tkFont import Font
 
@@ -108,6 +110,11 @@ class Board:
 class GUI:
 
   def __init__(self):
+    self._init_app()
+    self._init_ai()
+    self.update()
+
+  def _init_app(self):
     self.app = Tk()
     self.app.title('Connect4')
     self.app.resizable(width=False, height=False)
@@ -128,18 +135,35 @@ class GUI:
     handler = lambda: self.reset()
     self.restart = Button(self.app, command=handler, text='reset')
     self.restart.grid(row=2, column=0, columnspan=self.board.width, sticky="WE")
-    self.update()
+
+  def _init_ai(self):
+    ai_path = os.path.join(os.path.dirname(__file__), 'conn4.pl')
+    self.ai = subprocess.Popen([r"C:\Program Files\swipl\bin\swipl.exe", ai_path], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
 
   def reset(self):
+    self.ai.terminate()
+    self._init_ai()
     self.board = Board()
     self.update()
 
   def move(self,x):
     self.app.config(cursor="watch")
     self.app.update()
-    self.board = self.board.move(x)
-    self.update()
-    self.app.config(cursor="")
+    try:
+      # me
+      self.ai.stdin.write(str(x + 1) + '\n')
+      print self.ai.stdout.readline().strip()
+      self.board = self.board.move(x)
+      if self.update():
+        return
+      # him
+      self.ai.stdin.write('0\n')
+      y = self.ai.stdout.readline().strip()
+      self.board = self.board.move(int(y[3]) - 1)
+      self.update()
+      print y
+    finally:
+      self.app.config(cursor="")
 
   def update(self):
     for (x,y) in self.board.fields:
@@ -157,15 +181,20 @@ class GUI:
         self.buttons[x]['state'] = 'disabled'
     winning = self.board.won()
     if winning:
+      self.ai.terminate()
       for x,y in winning:
         self.tiles[x,y].create_oval(25, 20, 35, 30, fill="black")
       for x in range(self.board.width):
         self.buttons[x]['state'] = 'disabled'
+    return winning
 
   def mainloop(self):
     self.app.mainloop()
 
+
 if __name__ == '__main__':
-  threading.Thread(target=GUI().mainloop).run()
-  for move in sys.stdin.readlines():
-    if move.
+  gui = GUI()
+  try:
+    gui.mainloop()
+  finally:
+    gui.ai.terminate()
