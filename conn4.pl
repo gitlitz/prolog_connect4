@@ -8,10 +8,10 @@
 %                 called "connect 4" or "4 in a row".
 %                 The program displays a graphical interface, aswell as an AI
 %                 which is a cimputer playing againt a human player.
-%  Input        - a series of numeric (1-7) key and space bar strokes 
+%  Input        - a series of numeric (0-7) key strokes 
 %                 all input is presented received through interpreter window
 %  Ouptut       - interaction with a graphical interface
-%                 all ojutput is presented on the graphical interface
+%                 all output is presented on the graphical interface
 % -------------------------------------------------------------------------
 
 
@@ -51,11 +51,59 @@ column(Empty, col(N0,yes,empty,0,Empty), N0, N) :-
         N is N0 + 1.
 
 win(Player, Board) :-
+        (   member(col(_,_,Player,N,_), Board), N >= 4;
         un_col(Board, Board1),
         (   four_in_a_row(Board1, Player)
         ;   diagonal(Board1, Player)
+        )).
+
+hueristic(Score, Board):-
+	max_row(XL, Board, x),
+	max_row(OL, Board, o),
+	Score is XL - OL.
+
+max_row(Length, Board, Player):-
+        un_col(Board, UBoard),
+	((member(col(_,_,Player,3,_), Board);
+	three_in_a_row(UBoard, Player);
+	three_diagonal(UBoard, Player)) -> Length = 3;
+	(member(col(_,_,Player,2,_), Board);
+	three_in_a_row(UBoard, Player);
+	three_diagonal(UBoard, Player)) -> Length = 2;
+	Length=1).
+
+three_in_a_row([Col1,Col2,Col3|Cs], Player) :-
+        (   three_in_a_row(Col1, Col2, Col3, Player)
+        ;   three_in_a_row([Col2,Col3|Cs], Player)
         ).
 
+three_in_a_row([C1|Cs1], [C2|Cs2], [C3|Cs3],P) :-
+        \+ empty(C1),
+        \+ empty(C2),
+        \+ empty(C3),
+        (   C1 == P, C2 == P, C3 == P
+        ;   three_in_a_row(Cs1, Cs2, Cs3, P)
+        ).
+
+
+three_diagonal(Board, Player) :-
+        Board = [_,_,_,_|_],
+        (   diagonal_down(Board, Player)
+        ;   diagonal_up(Board, Player)
+        ;   Board = [_|Rest],
+            diagonal(Rest, Player)
+        ).
+
+three_diagonal_down([Col1,Col2,Col3|_], Player) :-
+        Col2 = [_|Rot2],
+        Col3 = [_,_|Rot3],
+        three_in_a_row(Col1, Rot2, Rot3, Player).
+
+three_diagonal_up([Col1,Col2,Col3|_], Player) :-
+        Col1 = [_,_,_|Rot1],
+        Col2 = [_,_|Rot2],
+        Col3 = [_|Rot3],
+        three_in_a_row(Rot1, Rot2, Rot3, Player).
 
 un_col([], []).
 un_col([col(_,_,_,_,Cs)|Rest], [Cs|Css]) :-  un_col(Rest, Css).
@@ -133,10 +181,6 @@ play_column([Col0|Cols0], Column, Player, [Col|Cols]) :-
 %     - positive if x wins by this move
 %     - zero if no decision is reached yet
 %     - negative if o wins.
-%   0 can thus be assigned only if the depth limit is exceeded. In such cases, 
-%   it would be a valuable extension to assign a heuristic score from the 
-%   interval (-1,1). Note that higher and lower numbers can be assigned to 
-%   force particular decisions.
 %
 %   Ties are broken by picking a random move among the best ones, therefore
 %   the game typically differs from run to run.
@@ -187,12 +231,12 @@ moves_with_scores([M|Ms], Depth, Alpha0, Beta0, Player, Board0, [Score-M|SMs]) :
         ).
 
 move_score(Depth, Alpha, Beta, Player, Board0, Move, Score) :-
-        (   Depth is 0 -> Score is 0
+        (   Depth is 0 -> hueristic(Score, Board0)
         ;   play_column(Board0, Move, Player, Board1),
             (   win(Player, Board1) ->
                 (   max_player(Player) ->
-                    Score is 1 + Depth % favor early wins
-                ;   Score is -1 - Depth
+                    Score is 99 + Depth % favor early wins
+                ;   Score is -99 - Depth
                 )
             ;   possible_columns(Board1, Moves),
                 (   Moves == [] ->
@@ -212,6 +256,7 @@ best_score(SMs0, Player, Score) :-
             last(SMs, Score-_)
         ;   SMs = [Score-_|_]
         ).
+
 
 user_input(Board, Char) :-
         get_single_char(Char0),
