@@ -1,8 +1,11 @@
+#!/usr/bin/python
+
 # coding=UTF8
 
 # Python Connect4 game (https://github.com/mevdschee/python-connect4.git)
 # Author: Maurits van der Schee <maurits@vdschee.nl>
 
+import argparse
 import os
 import sys
 import copy
@@ -13,7 +16,6 @@ from Tkinter import Tk, Button, Frame, Canvas
 from tkFont import Font
 
 class Board:
-
   nodes = {}
 
   def __init__(self,other=None):
@@ -109,7 +111,8 @@ class Board:
 
 class GUI:
 
-  def __init__(self):
+  def __init__(self, depth):
+    self.depth = depth
     self._init_app()
     self._init_ai()
     self.update()
@@ -138,7 +141,9 @@ class GUI:
 
   def _init_ai(self):
     ai_path = os.path.join(os.path.dirname(__file__), 'conn4.pl')
-    self.ai = subprocess.Popen([r"C:\Program Files\swipl\bin\swipl.exe", ai_path], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+    # for widnows: self.ai = subprocess.Popen([r"C:\Program Files\swipl\bin\swipl.exe", ai_path], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+    print(ai_path)
+    self.ai = subprocess.Popen(["swipl", ai_path, str(self.depth)], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
 
   def reset(self):
     self.ai.terminate()
@@ -191,9 +196,20 @@ class GUI:
   def mainloop(self):
     self.app.mainloop()
 
+def parse_args():
+  parser = argparse.ArgumentParser(description="Run a 4 in a row game, with ai written in prolog")
+  parser.add_argument("--depth", help="Set the maximum depth search for the ai. This value must be at least 1", 
+        default=4, type=int)
+  depth = parser.parse_args().depth
+
+  if depth < 1:
+      print("error: depth must be at least 1")
+      sys.exit(1)
+  return depth
 
 if __name__ == '__main__':
-  gui = GUI()
+  depth = parse_args()
+  gui = GUI(depth)
   try:
     gui.mainloop()
   finally:

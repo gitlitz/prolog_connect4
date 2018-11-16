@@ -16,6 +16,9 @@
 
 
 main:-
+    current_prolog_flag(argv, [Arg]),
+    atom_number(Arg, Depth),
+    b_setval(max_depth, Depth),
     empty_board(6, 7, Board0),
     interact(x, Board0).
 
@@ -144,7 +147,6 @@ opponent(o, x).
 
 max_player(x).
 
-max_depth(4).
 
 free_column(col(_,yes,_,_,_)).
 
@@ -156,7 +158,7 @@ possible_columns(Cols0, Cs) :-
 
 play(Player, Board0, Move) :-
         possible_columns(Board0, Columns),
-        max_depth(Depth),
+        b_getval(max_depth, Depth),
         Alpha is -Depth - 1,
         Beta is Depth + 1,
         moves_with_scores(Columns, Depth, Alpha, Beta, Player, Board0, SMs),
